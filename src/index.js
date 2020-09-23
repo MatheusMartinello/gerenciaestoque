@@ -1,11 +1,11 @@
-const express = require('express');
+const express = require("express");
+const bodyParser = require("body-parser");
+
 const app = express();
 
-const cors = require("cors");
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use(cors());
-app.use(express.json());
+require("./controller/controleMain")(app);
 
-app.listen('3001',()=>{
-    console.log("server is up!")
-});
+app.listen(3001);
