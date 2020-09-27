@@ -8,4 +8,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 require("./controller/controleMain")(app);
 
-app.listen(3001);
+app.listen(3001, () => {
+  console.log("Server up on port 3001!");
+});
