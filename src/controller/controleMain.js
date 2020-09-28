@@ -47,31 +47,34 @@ async function criaProduto(objeto, idestoques) {
     "SELECT * from produtos where nome like $1 and idestoques = $2",
     [objeto.nome.toUpperCase(), idestoques]
   );
+  
   if (validaProduto.rows.length === 0) {
+    const valorMedio = custo;
     const result = await pool.query(
-      "INSERT INTO produtos(nome,quantidade,custo,idestoques) VALUES ($1,$2,$3,$4)",
-      [objeto.nome.toUpperCase(), objeto.qnt, objeto.custo, idestoques]
+      "INSERT INTO produtos(nome,quantidade,custo,idestoques,valormedio) VALUES ($1,$2,$3,$4,$5)",
+      [objeto.nome.toUpperCase(), objeto.qnt, objeto.custo, idestoques,valorMedio]
     );
     console.log(result.rows);
   } else {
+    const valormedio = (parseFloat(objeto.qnt)*parseFloat(objeto.custo))+(parseFloat(validaProduto.rows[0].quantidade)*parseFloat(validaProduto.rows[0].custo))/(parseFloat(validaProduto.rows[0].quantidade)+parseFloat(objeto.qnt));
     objeto.qnt =
       parseInt(validaProduto.rows[0].quantidade) + parseInt(objeto.qnt);
     const result = await pool.query(
-      "update produtos set quantidade = $1, custo = $2, createat = $3",
-      [objeto.qnt, objeto.custo, geraData()]
+      "update produtos set quantidade = $1, custo = $2, createat = $3, valormedio = $6 where idproduto = $4 and idestoques =$5",
+      [objeto.qnt, objeto.custo, geraData(),validaProduto.rows[0].idproduto,validaProduto.rows[0].idestoques, valormedio]
     );
   }
 }
 async function getIdProduto(objeto, idestoques) {
   const validaProduto = await pool.query(
-    "SELECT * from produtos where nome like $1 and idestoques = $2",
+    "SELECT idprodutos from produtos where nome like $1 and idestoques = $2",
     [objeto.nome.toUpperCase(), idestoques]
   );
-  return validaProduto.rows[0].idprodutos;
+ return validaProduto.rows[0].idprodutos;
 }
 async function geraComprasF(objeto, req, idnotafiscal) {
   const { idestoques, idfornecedor, idprodutof, qnt, custo } = req.body;
-  console.log("Aqui estamos");
+  const {quantidadedb,custodb} = await pool.query("SELECT quantidade, custo from produtos where ")
   await pool.query(
     'insert into "comprasFornecedor"("idProdutosE",idfornecedor,idprodutos,idestoques,idnotafiscal,quantidade,custo)values($1,$2,$3,$4,$5,$6,$7)',
     [
