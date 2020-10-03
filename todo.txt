@@ -1,0 +1,3 @@
+adicionar nota fiscal nos modelos do banco, onde é entrada e saida de produtos;
+
+atuliazar tabela nota fiscal para que tenha qual o tipo da notafiscal que é

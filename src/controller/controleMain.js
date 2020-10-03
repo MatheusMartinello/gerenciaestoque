@@ -281,10 +281,108 @@ router.post("/fabricacao", async (req, res) => {
       [idprodutos, idestoques, result.rows[0].max, quantidade]
     );
     res.send("Pedido de fabrica gerado com sucesso!");
+    let produto = await pool.query(
+      "SELECT nome FROM produtos WHERE nome = $1 and idestoques = $2",
+      [nome.toLowerCase(), parseInt(idEmpresa, 10)]
+    );
+
+    if (verificaNaBase(req.body)) {
+      parseInt(produto.qtd, 10) += parseInt(qtd, 10);
+      pool.query(
+        "UPDATE produtos SET quantidade = $1, createat = $2 where idPRODUTO = $3",
+        [produto.qtd, Date(), produto.idPRODUTO]
+      );
+      res.send("Produto Atualizado! ");
+    } else {
+      pool.query(
+        "INSERT INTO produtos (idestoques,nome,quantidade,codigobarras,custo,createat) VALUES ($1,$2,$3,$4,$5,$6)",
+        [
+          parseInt(idEmpresa, 10),
+          nome.toUpperCase(),
+          parseInt(qtd, 10),
+          parseInt(codBarras, 10),
+          custo,
+          geraData(),
+        ]
+      );
+      res.send("Produto criado!");
+    }
+  } catch (err) {
+    console.err(err);
+  }
+});
+
+router.post("/entrada/produto", async (req, res) => {
+  const {
+    idestoques,
+    idproduto,
+    quantidade,
+    idforncedor,
+    idprodutoe,
+  } = req.body;
+  try {
+    if (verificaNaBase(req.body)) {
+      await pool.query(
+        "UPDATE produtos SET quantidade = (quantidade + $1) where idproduto = $2 ",
+        [quantidade, idproduto]
+      );
+      await pool.query(
+        "INSERT INTO comprasfornecedor(idestoques,idprodutos,idfornecedor,idprodutoe) values($1,$2,$3,$4)",
+        [idestoques, idproduto, idforncedor, idprodutoe]
+      );
+    } else {
+    }
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+//Gera venda de Produtos
+router.post("/venda", async (req, res) => {
+  let notafiscalid = "";
+  try {
+    pool.query("INSERT INTO notafiscal(datavenda) values ($1)", [geraData()]);
+    notafiscalid = await pool.query("SELECT MAX(idnotafiscal) from notafiscal");
+    res.send(result.rows);
+  } catch (err) {
+    console.error(err);
+  }
+  try {
+    const { idestoque, idproduto, qnt, valor } = await req.body;
+    pool.query(
+      "INSERT INTO venda (idnotafiscal,idprodutos,idestoques,qnt,valor) values ($1,$2,$3,$4,$5)",
+      [notafiscalid, idproduto, idestoque, qnt, valor]
+    );
+    const qntQ = await pool.query(
+      "SELECT quantidades FROM produtos WHERE idprodutos = $1",
+      [idproduto]
+    );
+    const qntResult = qntQ - qnt;
+    pool.query("UPDATE produtos SET quantidade = $1 WHERE idprodutos = $2", [
+      qntResult,
+      idproduto,
+    ]);
+    res.send("Venda adicionada com sucesso!");
   } catch (err) {
     console.error(err);
     res.status(404).send(err);
   }
 });
+//Ve todas as vendas feitas por todas as lojas
+router.get("/venda", async (req, res) => {
+  const result = await pool.query("SELECT * from vendas");
+  res.send(result.rows);
+});
+//Verifica Produtos que foram vendidos p/ determinada loja
+router.get("/venda/:idnotafiscal/:idestoque", (req, res) => {
+  const notafiscalid = req.params.idnotafiscal;
 
+  const empresaid = req.params.idestoque;
+  const result = pool.query(
+    "SELECT notafiscal.notafiscalid, produtos.idestoques, produtos.nome" +
+      "from vendas where vendas.idnotafiscal = $1 AND vendas.idestoques = $2" +
+      "inner join produtos on vendas.idestoques = produtos.idestoques",
+    [notafiscalid, empresaid]
+  );
+  res.send(result.rows);
+});
 module.exports = (controleMain, (app) => app.use("/empresa", router));
