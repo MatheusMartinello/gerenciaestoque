@@ -49,16 +49,20 @@ async function criaProduto(objeto, idestoques) {
   );
   if (validaProduto.rows.length === 0) {
     const result = await pool.query(
-      "INSERT INTO produtos(nome,quantidade,custo,idestoques) VALUES ($1,$2,$3,$4)",
-      [objeto.nome.toUpperCase(), objeto.qnt, objeto.custo, idestoques]
+      "INSERT INTO produtos(nome,quantidade,custo,idestoques,medida) VALUES ($1,$2,$3,$4,$5)",
+      [objeto.nome.toUpperCase(), objeto.qnt, objeto.custo, idestoques, medida]
     );
     console.log(result.rows);
   } else {
     objeto.qnt =
       parseInt(validaProduto.rows[0].quantidade) + parseInt(objeto.qnt);
+    const valorMedio =
+      (validaProduto.rows[0].qnt * validaProduto.rows[0].custo +
+        objeto.custo * objeto.qnt) /
+      (validaProduto.rows[0].qnt + objeto.qnt);
     const result = await pool.query(
-      "update produtos set quantidade = $1, custo = $2, createat = $3",
-      [objeto.qnt, objeto.custo, geraData()]
+      "update produtos set quantidade = $1, custo = $2, createat = $3, mediadevalor = $4",
+      [objeto.qnt, objeto.custo, geraData(), valorMedio]
     );
   }
 }
