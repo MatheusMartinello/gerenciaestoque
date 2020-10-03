@@ -47,7 +47,6 @@ async function criaProduto(objeto, idestoques) {
     "SELECT * from produtos where nome like $1 and idestoques = $2",
     [objeto.nome.toUpperCase(), idestoques]
   );
-<<<<<<< HEAD
   if (validaProduto.rows.length === 0) {
     const result = await pool.query(
       "INSERT INTO produtos(nome,quantidade,custo,idestoques) VALUES ($1,$2,$3,$4)",
@@ -60,29 +59,11 @@ async function criaProduto(objeto, idestoques) {
     const result = await pool.query(
       "update produtos set quantidade = $1, custo = $2, createat = $3",
       [objeto.qnt, objeto.custo, geraData()]
-=======
-  
-  if (validaProduto.rows.length === 0) {
-    const valorMedio = custo;
-    const result = await pool.query(
-      "INSERT INTO produtos(nome,quantidade,custo,idestoques,valormedio) VALUES ($1,$2,$3,$4,$5)",
-      [objeto.nome.toUpperCase(), objeto.qnt, objeto.custo, idestoques,valorMedio]
-    );
-    console.log(result.rows);
-  } else {
-    const valormedio = (parseFloat(objeto.qnt)*parseFloat(objeto.custo))+(parseFloat(validaProduto.rows[0].quantidade)*parseFloat(validaProduto.rows[0].custo))/(parseFloat(validaProduto.rows[0].quantidade)+parseFloat(objeto.qnt));
-    objeto.qnt =
-      parseInt(validaProduto.rows[0].quantidade) + parseInt(objeto.qnt);
-    const result = await pool.query(
-      "update produtos set quantidade = $1, custo = $2, createat = $3, valormedio = $6 where idproduto = $4 and idestoques =$5",
-      [objeto.qnt, objeto.custo, geraData(),validaProduto.rows[0].idproduto,validaProduto.rows[0].idestoques, valormedio]
->>>>>>> ad3c09a36147e202bf07f80be3981507223fe65c
     );
   }
 }
 async function getIdProduto(objeto, idestoques) {
   const validaProduto = await pool.query(
-<<<<<<< HEAD
     "SELECT * from produtos where nome like $1 and idestoques = $2",
     [objeto.nome.toUpperCase(), idestoques]
   );
@@ -91,16 +72,6 @@ async function getIdProduto(objeto, idestoques) {
 async function geraComprasF(objeto, req, idnotafiscal) {
   const { idestoques, idfornecedor, idprodutof, qnt, custo } = req.body;
   console.log("Aqui estamos");
-=======
-    "SELECT idprodutos from produtos where nome like $1 and idestoques = $2",
-    [objeto.nome.toUpperCase(), idestoques]
-  );
- return validaProduto.rows[0].idprodutos;
-}
-async function geraComprasF(objeto, req, idnotafiscal) {
-  const { idestoques, idfornecedor, idprodutof, qnt, custo } = req.body;
-  const {quantidadedb,custodb} = await pool.query("SELECT quantidade, custo from produtos where ")
->>>>>>> ad3c09a36147e202bf07f80be3981507223fe65c
   await pool.query(
     'insert into "comprasFornecedor"("idProdutosE",idfornecedor,idprodutos,idestoques,idnotafiscal,quantidade,custo)values($1,$2,$3,$4,$5,$6,$7)',
     [
@@ -168,7 +139,6 @@ router.post("/produto", async (req, res) => {
   const { idEmpresa, nome, qtd, codBarras, custo } = req.body;
   let produto = await verificaNaBase(req.body);
   console.log(produto.rows[0].quantidade);
-<<<<<<< HEAD
   try {
     if (produto.rows.length !== 0) {
       const test = parseInt(produto.rows[0].quantidade) + parseInt(qtd);
@@ -323,25 +293,6 @@ router.post("/fabricacao", async (req, res) => {
         [produto.qtd, Date(), produto.idPRODUTO]
       );
       res.send("Produto Atualizado! ");
-=======
-  try {
-    if (produto.rows.length !== 0) {
-      const test = parseInt(produto.rows[0].quantidade) + parseInt(qtd);
-      console.log(test);
-      produto.rows[0].quantidade = test;
-      console.log(produto.rows[0].idprodutos);
-      await pool.query(
-        "UPDATE produtos SET quantidade = $1, createat = $2, custo = $3 where idprodutos = $4 and idestoques = $5",
-        [
-          produto.rows[0].quantidade,
-          geraData(),
-          custo,
-          produto.rows[0].idprodutos,
-          idEmpresa,
-        ]
-      );
-      res.send("Produto Atualizado!");
->>>>>>> ad3c09a36147e202bf07f80be3981507223fe65c
     } else {
       pool.query(
         "INSERT INTO produtos (idestoques,nome,quantidade,codigobarras,custo,createat) VALUES ($1,$2,$3,$4,$5,$6)",
@@ -355,192 +306,9 @@ router.post("/fabricacao", async (req, res) => {
         ]
       );
       res.send("Produto criado!");
-<<<<<<< HEAD
     }
   } catch (err) {
     console.err(err);
-  }
-});
-
-router.post("/entrada/produto", async (req, res) => {
-  const {
-    idestoques,
-    idproduto,
-    quantidade,
-    idforncedor,
-    idprodutoe,
-  } = req.body;
-  try {
-    if (verificaNaBase(req.body)) {
-      await pool.query(
-        "UPDATE produtos SET quantidade = (quantidade + $1) where idproduto = $2 ",
-        [quantidade, idproduto]
-      );
-      await pool.query(
-        "INSERT INTO comprasfornecedor(idestoques,idprodutos,idfornecedor,idprodutoe) values($1,$2,$3,$4)",
-        [idestoques, idproduto, idforncedor, idprodutoe]
-      );
-    } else {
-=======
->>>>>>> ad3c09a36147e202bf07f80be3981507223fe65c
-    }
-  } catch (error) {
-    console.error(error);
-  }
-});
-//Gera venda de Produtos
-router.post("/venda", async (req, res) => {
-<<<<<<< HEAD
-  let notafiscalid = "";
-  try {
-    pool.query("INSERT INTO notafiscal(datavenda) values ($1)", [geraData()]);
-    notafiscalid = await pool.query("SELECT MAX(idnotafiscal) from notafiscal");
-    res.send(result.rows);
-  } catch (err) {
-    console.error(err);
-  }
-=======
-  const idnotafiscal = await geraNota("Venda");
-  console.log(idnotafiscal);
->>>>>>> ad3c09a36147e202bf07f80be3981507223fe65c
-  try {
-    const { idestoque, idproduto, qnt, valor } = await req.body;
-    pool.query(
-      "INSERT INTO venda (idnotafiscal,idprodutos,idestoques,qnt,valor) values ($1,$2,$3,$4,$5)",
-      [idnotafiscal, idproduto, idestoque, qnt, valor]
-    );
-    const qntQ = await pool.query(
-<<<<<<< HEAD
-      "SELECT quantidades FROM produtos WHERE idprodutos = $1",
-      [idproduto]
-    );
-    const qntResult = qntQ - qnt;
-    pool.query("UPDATE produtos SET quantidade = $1 WHERE idprodutos = $2", [
-      qntResult,
-      idproduto,
-    ]);
-=======
-      "SELECT quantidade FROM produtos WHERE idprodutos = $1",
-      [idproduto]
-    );
-    console.log(qntQ);
-    let qntResult = qntQ.rows[0].quantidade - qnt;
-    if (qntResult < 0)
-      res.status(402).send("Nao tem quantdade suficiente para a venda");
-    else
-      pool.query(
-        "UPDATE produtos SET quantidade = $1 WHERE idprodutos = $2 and idestoques = $3",
-        [qntResult, idproduto, idestoque]
-      );
->>>>>>> ad3c09a36147e202bf07f80be3981507223fe65c
-    res.send("Venda adicionada com sucesso!");
-  } catch (err) {
-    console.error(err);
-    res.status(404).send(err);
-  }
-});
-<<<<<<< HEAD
-//Ve todas as vendas feitas por todas as lojas
-router.get("/venda", async (req, res) => {
-  const result = await pool.query("SELECT * from vendas");
-  res.send(result.rows);
-});
-//Verifica Produtos que foram vendidos p/ determinada loja
-router.get("/venda/:idnotafiscal/:idestoque", (req, res) => {
-  const notafiscalid = req.params.idnotafiscal;
-
-  const empresaid = req.params.idestoque;
-  const result = pool.query(
-    "SELECT notafiscal.notafiscalid, produtos.idestoques, produtos.nome" +
-      "from vendas where vendas.idnotafiscal = $1 AND vendas.idestoques = $2" +
-      "inner join produtos on vendas.idestoques = produtos.idestoques",
-    [notafiscalid, empresaid]
-  );
-  res.send(result.rows);
-=======
-//Ve todas as vendas
-router.get("/venda", async (req, res) => {
-  const result = await pool.query("SELECT * from vendas");
-  res.send(result.rows);
-});
-//Quais produtos que foram vendidos de determinada loja e para qual nota fiscal
-router.get("/venda/:idnotafiscal/:idestoque", (req, res) => {
-  const notafiscalid = req.params.idnotafiscal;
-  const empresaid = req.params.idestoque;
-  const result = pool.query(
-    "SELECT notafiscal.notafiscalid, produtos.idestoques, produtos.nome" +
-      "from vendas where vendas.idnotafiscal = $1 AND vendas.idestoques = $2" +
-      "inner join produtos on vendas.idestoques = produtos.idestoques",
-    [notafiscalid, empresaid]
-  );
-  res.send(result.rows);
-});
-//registar consumo interno
-router.post("/consumo/interno", async (req, res) => {
-  const { idprodutos, idestoques, quantidade } = req.body;
-  const result = await pool.query(
-    "SELECT * FROM produtos where idprodutos = $1 and idestoques = $2",
-    [idprodutos, idestoques]
-  );
-  console.log(result.rows[0]);
-  if (result.rows !== 0) {
-    const aux_quantidade = parseInt(result.rows[0].quantidade) - quantidade;
-    await pool.query(
-      "insert into consumointerno(idprodutos,idestoques,createat,quantidade) values ($1,$2,$3,$4)",
-      [idprodutos, idestoques, geraData(), quantidade]
-    );
-    await pool.query(
-      "update produtos set quantidade = $1 where idprodutos = $2 and idestoques = $3",
-      [aux_quantidade, idprodutos, idestoques]
-    );
-  }
-});
-//registro de devolucao
-router.post("/devolucao/produto", async (req, res) => {
-  const aux = await geraNota("Devolucao");
-  const {
-    idestoques,
-    idprodutos,
-    idfornecedor,
-    idprodutof,
-    quantidade,
-  } = req.body;
-  await pool.query(
-    'INSERT INTO devolucao(idestoques, idprodutos, idfornecedor, "idProdutosE",idnotafiscal, quantidade)values($1,$2,$3,$4,$5,$6)',
-    [idestoques, idprodutos, idfornecedor, idprodutof, aux, quantidade]
-  );
-  res.send("Sucesso! ");
-});
-//registrar entrada de produto
-router.post("/entrada/produto", async (req, res) => {
-  const aux = await geraNota("teste");
-  const { idestoques } = req.body;
-  const result = await pegaValoresProdutoF(req.body);
-  await criaProduto(result.rows[0], idestoques);
-  geraComprasF(result.rows[0], req, aux);
-
-  res.send("rodo");
->>>>>>> ad3c09a36147e202bf07f80be3981507223fe65c
-});
-//pedido de fabrica
-router.post("/fabricacao", async (req, res) => {
-  const { idprodutos, idestoques, quantidade } = req.body;
-  try {
-    await pool.query('INSERT INTO "pedidoFabricacao"(createat)values($1)', [
-      geraData(),
-    ]);
-    const result = await pool.query(
-      'SELECT MAX(idpedido) FROM "pedidoFabricacao"'
-    );
-    console.log(result.rows[0].max);
-    await pool.query(
-      "insert into insumos(idprodutos,idestoques,idpedido,quantidade)values($1,$2,$3,$4)",
-      [idprodutos, idestoques, result.rows[0].max, quantidade]
-    );
-    res.send("Pedido de fabrica gerado com sucesso!");
-  } catch (err) {
-    console.error(err);
-    res.status(404).send(err);
   }
 });
 
