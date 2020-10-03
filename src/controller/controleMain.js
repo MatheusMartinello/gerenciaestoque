@@ -6,7 +6,6 @@ function geraData() {
   const d = new Date();
   return d.toLocaleString();
 }
-//PRECISA TESTAR
 function controleMain() {
   return (req, res, next) => {
     next();
@@ -64,6 +63,7 @@ async function criaProduto(objeto, idestoques) {
       "update produtos set quantidade = $1, custo = $2, createat = $3, mediadevalor = $4",
       [objeto.qnt, objeto.custo, geraData(), valorMedio]
     );
+    return result.rows;
   }
 }
 async function getIdProduto(objeto, idestoques) {
@@ -91,7 +91,7 @@ async function geraComprasF(objeto, req, idnotafiscal) {
   return true;
 }
 
-//cria empresa
+//cria estoque
 router.post("/", async (req, res) => {
   const { nome, endereco, telefone } = req.body;
   const empresa = await pool.query(
